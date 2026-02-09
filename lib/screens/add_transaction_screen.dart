@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/book.dart';
 import '../models/transaction.dart';
 import '../models/category.dart';
+import '../code/icon_helper.dart';
 import '../services/local_database_service.dart';
 import 'package:intl/intl.dart';
 
@@ -333,8 +334,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(category.icon,
-                              style: const TextStyle(fontSize: 20)),
+                          Icon(
+                            IconHelper.getIcon(category.icon),
+                            size: 20,
+                            color: isSelected
+                                ? Colors.white
+                                : Color(int.parse('FF${category.color}',
+                                    radix: 16)),
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             category.name,

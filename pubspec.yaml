@@ -1,5 +1,5 @@
 name: kerja_praktik_app
-description: Mobile application for managing internship (Kerja Praktik) with beautiful UI and great user experience
+description: CateTaja - Smart expense and income tracking app
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -25,14 +25,22 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web:
+    generate: true
+  image_path: "logo/app.png"
+  adaptive_icon_background: "#6C63FF"
+  adaptive_icon_foreground: "logo/app.png"
 
 flutter:
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - logo/app.png
 
   # To add custom fonts to your application, add a fonts section here:
   # fonts:

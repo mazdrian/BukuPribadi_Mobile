@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../models/book.dart';
 import '../models/category.dart';
 import '../models/transaction.dart';
+import '../code/icon_helper.dart';
 import '../services/receipt_parser_service.dart';
 
 /// Data class returned when the user confirms the scanned receipt
@@ -682,8 +683,14 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(category.icon,
-                              style: const TextStyle(fontSize: 18)),
+                          Icon(
+                            IconHelper.getIcon(category.icon),
+                            size: 18,
+                            color: isSelected
+                                ? Colors.white
+                                : Color(int.parse('FF${category.color}',
+                                    radix: 16)),
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             category.name,

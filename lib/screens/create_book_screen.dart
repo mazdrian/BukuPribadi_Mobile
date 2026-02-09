@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/local_database_service.dart';
 import '../models/book.dart';
+import '../code/icon_helper.dart';
 
 class CreateBookScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -23,28 +24,11 @@ class _CreateBookScreenState extends ConsumerState<CreateBookScreen> {
   final _descriptionController = TextEditingController();
 
   bool _isLoading = false;
-  String _selectedIcon = '💰';
+  String _selectedIcon = 'savings';
   String _selectedColor = '5F27CD';
   String? _errorMessage;
 
-  final List<String> _icons = [
-    '💰',
-    '💵',
-    '💳',
-    '🏦',
-    '📊',
-    '📈',
-    '💼',
-    '🎯',
-    '🏠',
-    '🚗',
-    '✈️',
-    '🎓',
-    '👔',
-    '🍔',
-    '🛒',
-    '💊',
-  ];
+  final List<String> _icons = IconHelper.bookIconKeys;
 
   final List<String> _colors = [
     '5F27CD',
@@ -310,8 +294,13 @@ class _CreateBookScreenState extends ConsumerState<CreateBookScreen> {
                               : null,
                         ),
                         child: Center(
-                          child:
-                              Text(icon, style: const TextStyle(fontSize: 28)),
+                          child: Icon(
+                            IconHelper.getIcon(icon),
+                            size: 28,
+                            color: isSelected
+                                ? Colors.white
+                                : const Color(0xFF2C3E50),
+                          ),
                         ),
                       ),
                     );
@@ -412,8 +401,11 @@ class _CreateBookScreenState extends ConsumerState<CreateBookScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
-                        child: Text(_selectedIcon,
-                            style: const TextStyle(fontSize: 32)),
+                        child: Icon(
+                          IconHelper.getIcon(_selectedIcon),
+                          size: 32,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),

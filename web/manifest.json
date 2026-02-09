@@ -1,6 +1,6 @@
 {
-    "name": "kerja_praktik_app",
-    "short_name": "kerja_praktik_app",
+    "name": "CateTaja",
+    "short_name": "CateTaja",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

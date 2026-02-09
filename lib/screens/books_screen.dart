@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../providers/book_provider.dart';
 import '../models/book.dart';
+import '../code/icon_helper.dart';
 import 'create_book_screen.dart';
 import 'book_detail_screen.dart';
 import 'login_screen.dart';
@@ -286,9 +287,10 @@ class _BookCard extends StatelessWidget {
                     ],
                   ),
                   child: Center(
-                    child: Text(
-                      book.icon,
-                      style: const TextStyle(fontSize: 36),
+                    child: Icon(
+                      IconHelper.getIcon(book.icon),
+                      size: 36,
+                      color: Colors.white,
                     ),
                   ),
                 ),

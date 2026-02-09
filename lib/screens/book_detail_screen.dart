@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/book.dart';
 import '../models/transaction.dart';
+import '../models/category.dart';
+import '../code/icon_helper.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/book_provider.dart';
 import 'add_transaction_screen.dart';
@@ -21,11 +23,328 @@ class BookDetailScreen extends ConsumerStatefulWidget {
 
 class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   late Book _currentBook;
+  String? _selectedCategory;
+  DateTimeRange? _selectedDateRange;
+  TransactionType? _selectedType;
 
   @override
   void initState() {
     super.initState();
     _currentBook = widget.book;
+  }
+
+  List<Transaction> _applyFilters(List<Transaction> transactions) {
+    var filtered = transactions;
+
+    // Filter by transaction type
+    if (_selectedType != null) {
+      filtered = filtered.where((t) => t.type == _selectedType).toList();
+    }
+
+    // Filter by category
+    if (_selectedCategory != null) {
+      filtered =
+          filtered.where((t) => t.category == _selectedCategory).toList();
+    }
+
+    // Filter by date range
+    if (_selectedDateRange != null) {
+      final start = DateTime(
+        _selectedDateRange!.start.year,
+        _selectedDateRange!.start.month,
+        _selectedDateRange!.start.day,
+      );
+      final end = DateTime(
+        _selectedDateRange!.end.year,
+        _selectedDateRange!.end.month,
+        _selectedDateRange!.end.day,
+        23,
+        59,
+        59,
+      );
+      filtered = filtered
+          .where((t) =>
+              t.date.isAfter(start.subtract(const Duration(seconds: 1))) &&
+              t.date.isBefore(end.add(const Duration(seconds: 1))))
+          .toList();
+    }
+
+    return filtered;
+  }
+
+  void _showFilterBottomSheet(List<Transaction> allTransactions) {
+    // Get unique categories from existing transactions
+    final categories = allTransactions.map((t) => t.category).toSet().toList()
+      ..sort();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Handle bar
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    // Title
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Filter Transactions',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2C3E50),
+                          ),
+                        ),
+                        if (_selectedCategory != null ||
+                            _selectedDateRange != null ||
+                            _selectedType != null)
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _selectedCategory = null;
+                                _selectedDateRange = null;
+                                _selectedType = null;
+                              });
+                              setModalState(() {});
+                              Navigator.pop(context);
+                            },
+                            child: const Text(
+                              'Clear All',
+                              style: TextStyle(
+                                color: Color(0xFFFF6B9D),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Type filter
+                    const Text(
+                      'Transaction Type',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF7F8C8D),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        _FilterChip(
+                          label: 'All',
+                          isSelected: _selectedType == null,
+                          color: const Color(0xFF6C63FF),
+                          onTap: () {
+                            setState(() => _selectedType = null);
+                            setModalState(() {});
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        _FilterChip(
+                          label: 'Income',
+                          isSelected: _selectedType == TransactionType.income,
+                          color: const Color(0xFF00D9A6),
+                          onTap: () {
+                            setState(
+                                () => _selectedType = TransactionType.income);
+                            setModalState(() {});
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        _FilterChip(
+                          label: 'Expense',
+                          isSelected: _selectedType == TransactionType.expense,
+                          color: const Color(0xFFFF6B9D),
+                          onTap: () {
+                            setState(
+                                () => _selectedType = TransactionType.expense);
+                            setModalState(() {});
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Category filter
+                    const Text(
+                      'Category',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF7F8C8D),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _FilterChip(
+                          label: 'All Categories',
+                          isSelected: _selectedCategory == null,
+                          color: const Color(0xFF6C63FF),
+                          onTap: () {
+                            setState(() => _selectedCategory = null);
+                            setModalState(() {});
+                          },
+                        ),
+                        ...categories.map((cat) => _FilterChip(
+                              label: cat,
+                              isSelected: _selectedCategory == cat,
+                              color: const Color(0xFF6C63FF),
+                              onTap: () {
+                                setState(() => _selectedCategory = cat);
+                                setModalState(() {});
+                              },
+                            )),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Date range filter
+                    const Text(
+                      'Date Range',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF7F8C8D),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    InkWell(
+                      onTap: () async {
+                        final now = DateTime.now();
+                        final picked = await showDateRangePicker(
+                          context: context,
+                          firstDate: DateTime(2020),
+                          lastDate: now.add(const Duration(days: 365)),
+                          initialDateRange: _selectedDateRange,
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: Color(0xFF6C63FF),
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (picked != null) {
+                          setState(() => _selectedDateRange = picked);
+                          setModalState(() {});
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: _selectedDateRange != null
+                              ? const Color(0xFF6C63FF).withOpacity(0.1)
+                              : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _selectedDateRange != null
+                                ? const Color(0xFF6C63FF)
+                                : Colors.grey[300]!,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.date_range_rounded,
+                              color: _selectedDateRange != null
+                                  ? const Color(0xFF6C63FF)
+                                  : Colors.grey[600],
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _selectedDateRange != null
+                                    ? '${DateFormat('MMM dd, yyyy').format(_selectedDateRange!.start)} - ${DateFormat('MMM dd, yyyy').format(_selectedDateRange!.end)}'
+                                    : 'Select date range...',
+                                style: TextStyle(
+                                  color: _selectedDateRange != null
+                                      ? const Color(0xFF6C63FF)
+                                      : Colors.grey[600],
+                                  fontWeight: _selectedDateRange != null
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                            if (_selectedDateRange != null)
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() => _selectedDateRange = null);
+                                  setModalState(() {});
+                                },
+                                child: Icon(
+                                  Icons.close_rounded,
+                                  size: 20,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Apply button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6C63FF),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Apply Filters',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _refreshData() {
@@ -253,9 +572,10 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                           color: Colors.white.withOpacity(0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: Text(
-                          _currentBook.icon,
-                          style: const TextStyle(fontSize: 60),
+                        child: Icon(
+                          IconHelper.getIcon(_currentBook.icon),
+                          size: 60,
+                          color: Colors.white,
                         ),
                       ),
                     ],
@@ -336,9 +656,138 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
             ),
           ),
 
+          // Filter Bar
+          transactionsAsync.when(
+            data: (transactions) {
+              if (transactions.isEmpty) {
+                return const SliverToBoxAdapter(child: SizedBox.shrink());
+              }
+              final hasActiveFilters = _selectedCategory != null ||
+                  _selectedDateRange != null ||
+                  _selectedType != null;
+              final filteredCount = _applyFilters(transactions).length;
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          hasActiveFilters
+                              ? 'Showing $filteredCount of ${transactions.length} transactions'
+                              : 'All Transactions',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: hasActiveFilters
+                                ? const Color(0xFF6C63FF)
+                                : const Color(0xFF7F8C8D),
+                          ),
+                        ),
+                      ),
+                      Material(
+                        color: hasActiveFilters
+                            ? const Color(0xFF6C63FF)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        elevation: hasActiveFilters ? 2 : 1,
+                        child: InkWell(
+                          onTap: () => _showFilterBottomSheet(transactions),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 8),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.filter_list_rounded,
+                                  size: 18,
+                                  color: hasActiveFilters
+                                      ? Colors.white
+                                      : const Color(0xFF6C63FF),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Filter',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: hasActiveFilters
+                                        ? Colors.white
+                                        : const Color(0xFF6C63FF),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+            error: (_, __) =>
+                const SliverToBoxAdapter(child: SizedBox.shrink()),
+          ),
+
+          // Active Filter Chips
+          transactionsAsync.when(
+            data: (transactions) {
+              final chips = <Widget>[];
+              if (_selectedType != null) {
+                chips.add(_ActiveFilterChip(
+                  label: _selectedType == TransactionType.income
+                      ? 'Income'
+                      : 'Expense',
+                  color: _selectedType == TransactionType.income
+                      ? const Color(0xFF00D9A6)
+                      : const Color(0xFFFF6B9D),
+                  onRemove: () => setState(() => _selectedType = null),
+                ));
+              }
+              if (_selectedCategory != null) {
+                chips.add(_ActiveFilterChip(
+                  label: _selectedCategory!,
+                  color: const Color(0xFF6C63FF),
+                  onRemove: () => setState(() => _selectedCategory = null),
+                ));
+              }
+              if (_selectedDateRange != null) {
+                chips.add(_ActiveFilterChip(
+                  label:
+                      '${DateFormat('MMM dd').format(_selectedDateRange!.start)} - ${DateFormat('MMM dd').format(_selectedDateRange!.end)}',
+                  color: const Color(0xFF6C63FF),
+                  onRemove: () => setState(() => _selectedDateRange = null),
+                ));
+              }
+              if (chips.isEmpty) {
+                return const SliverToBoxAdapter(child: SizedBox.shrink());
+              }
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: chips,
+                  ),
+                ),
+              );
+            },
+            loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+            error: (_, __) =>
+                const SliverToBoxAdapter(child: SizedBox.shrink()),
+          ),
+
           // Transactions List
           transactionsAsync.when(
             data: (transactions) {
+              final filteredTransactions = _applyFilters(transactions);
+
               if (transactions.isEmpty) {
                 return SliverFillRemaining(
                   child: Center(
@@ -370,10 +819,56 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                 );
               }
 
+              if (filteredTransactions.isEmpty) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.filter_list_off_rounded,
+                          size: 80,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'No matching transactions',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2C3E50),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Try adjusting your filters',
+                          style: TextStyle(color: Color(0xFF7F8C8D)),
+                        ),
+                        const SizedBox(height: 16),
+                        TextButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _selectedCategory = null;
+                              _selectedDateRange = null;
+                              _selectedType = null;
+                            });
+                          },
+                          icon: const Icon(Icons.clear_all_rounded),
+                          label: const Text('Clear Filters'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFF6C63FF),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
               return SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    final transaction = transactions[index];
+                    final transaction = filteredTransactions[index];
                     return _TransactionItem(
                       transaction: transaction,
                       bookColor: _currentBook.color,
@@ -382,7 +877,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                       onDelete: () => _deleteTransaction(transaction),
                     );
                   },
-                  childCount: transactions.length,
+                  childCount: filteredTransactions.length,
                 ),
               );
             },
@@ -864,6 +1359,91 @@ class _TransactionItem extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _FilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? color : Colors.grey[100],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? color : Colors.grey[300]!,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            color: isSelected ? Colors.white : Colors.grey[700],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActiveFilterChip extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onRemove;
+
+  const _ActiveFilterChip({
+    required this.label,
+    required this.color,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 4),
+          GestureDetector(
+            onTap: onRemove,
+            child: Icon(
+              Icons.close_rounded,
+              size: 16,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
