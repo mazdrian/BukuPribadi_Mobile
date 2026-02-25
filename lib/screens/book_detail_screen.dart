@@ -4,11 +4,13 @@ import '../models/book.dart';
 import '../models/transaction.dart';
 import '../models/category.dart';
 import '../code/icon_helper.dart';
+import '../code/app_theme.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/book_provider.dart';
 import 'add_transaction_screen.dart';
 import 'scan_receipt_screen.dart';
 import 'create_book_screen.dart';
+import 'report_screen.dart';
 import '../services/local_database_service.dart';
 import 'package:intl/intl.dart';
 
@@ -27,10 +29,68 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
   DateTimeRange? _selectedDateRange;
   TransactionType? _selectedType;
 
+  // Selection mode
+  bool _isSelectionMode = false;
+  final Set<String> _selectedTransactionIds = {};
+
   @override
   void initState() {
     super.initState();
     _currentBook = widget.book;
+  }
+
+  void _toggleSelectionMode() {
+    setState(() {
+      _isSelectionMode = !_isSelectionMode;
+      if (!_isSelectionMode) {
+        _selectedTransactionIds.clear();
+      }
+    });
+  }
+
+  void _toggleTransactionSelection(String id) {
+    setState(() {
+      if (_selectedTransactionIds.contains(id)) {
+        _selectedTransactionIds.remove(id);
+      } else {
+        _selectedTransactionIds.add(id);
+      }
+      if (_selectedTransactionIds.isEmpty) {
+        _isSelectionMode = false;
+      }
+    });
+  }
+
+  void _selectAll(List<Transaction> transactions) {
+    setState(() {
+      _selectedTransactionIds.addAll(transactions.map((t) => t.id));
+    });
+  }
+
+  void _deselectAll() {
+    setState(() {
+      _selectedTransactionIds.clear();
+    });
+  }
+
+  Map<String, double> _calculateSelectedTotals(List<Transaction> transactions) {
+    double income = 0;
+    double expense = 0;
+    for (var t in transactions) {
+      if (_selectedTransactionIds.contains(t.id)) {
+        if (t.type == TransactionType.income) {
+          income += t.amount;
+        } else {
+          expense += t.amount;
+        }
+      }
+    }
+    return {
+      'income': income,
+      'expense': expense,
+      'balance': income - expense,
+      'count': _selectedTransactionIds.length.toDouble(),
+    };
   }
 
   List<Transaction> _applyFilters(List<Transaction> transactions) {
@@ -114,7 +174,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C3E50),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         if (_selectedCategory != null ||
@@ -133,7 +193,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                             child: const Text(
                               'Clear All',
                               style: TextStyle(
-                                color: Color(0xFFFF6B9D),
+                                color: AppColors.expense,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -148,7 +208,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF7F8C8D),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -157,7 +217,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                         _FilterChip(
                           label: 'All',
                           isSelected: _selectedType == null,
-                          color: const Color(0xFF6C63FF),
+                          color: AppColors.primary,
                           onTap: () {
                             setState(() => _selectedType = null);
                             setModalState(() {});
@@ -167,7 +227,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                         _FilterChip(
                           label: 'Income',
                           isSelected: _selectedType == TransactionType.income,
-                          color: const Color(0xFF00D9A6),
+                          color: AppColors.income,
                           onTap: () {
                             setState(
                                 () => _selectedType = TransactionType.income);
@@ -178,7 +238,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                         _FilterChip(
                           label: 'Expense',
                           isSelected: _selectedType == TransactionType.expense,
-                          color: const Color(0xFFFF6B9D),
+                          color: AppColors.expense,
                           onTap: () {
                             setState(
                                 () => _selectedType = TransactionType.expense);
@@ -195,7 +255,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF7F8C8D),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -206,7 +266,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                         _FilterChip(
                           label: 'All Categories',
                           isSelected: _selectedCategory == null,
-                          color: const Color(0xFF6C63FF),
+                          color: AppColors.primary,
                           onTap: () {
                             setState(() => _selectedCategory = null);
                             setModalState(() {});
@@ -215,7 +275,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                         ...categories.map((cat) => _FilterChip(
                               label: cat,
                               isSelected: _selectedCategory == cat,
-                              color: const Color(0xFF6C63FF),
+                              color: AppColors.primary,
                               onTap: () {
                                 setState(() => _selectedCategory = cat);
                                 setModalState(() {});
@@ -231,7 +291,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF7F8C8D),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -247,7 +307,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                             return Theme(
                               data: Theme.of(context).copyWith(
                                 colorScheme: const ColorScheme.light(
-                                  primary: Color(0xFF6C63FF),
+                                  primary: AppColors.primary,
                                 ),
                               ),
                               child: child!,
@@ -264,12 +324,12 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: _selectedDateRange != null
-                              ? const Color(0xFF6C63FF).withOpacity(0.1)
+                              ? AppColors.primary.withOpacity(0.1)
                               : Colors.grey[100],
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: _selectedDateRange != null
-                                ? const Color(0xFF6C63FF)
+                                ? AppColors.primary
                                 : Colors.grey[300]!,
                           ),
                         ),
@@ -278,7 +338,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                             Icon(
                               Icons.date_range_rounded,
                               color: _selectedDateRange != null
-                                  ? const Color(0xFF6C63FF)
+                                  ? AppColors.primary
                                   : Colors.grey[600],
                             ),
                             const SizedBox(width: 12),
@@ -289,7 +349,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                                     : 'Select date range...',
                                 style: TextStyle(
                                   color: _selectedDateRange != null
-                                      ? const Color(0xFF6C63FF)
+                                      ? AppColors.primary
                                       : Colors.grey[600],
                                   fontWeight: _selectedDateRange != null
                                       ? FontWeight.w600
@@ -321,7 +381,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6C63FF),
+                          backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -420,7 +480,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
-              backgroundColor: const Color(0xFF00D9A6),
+              backgroundColor: AppColors.income,
             ),
           );
         }
@@ -531,93 +591,148 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
         ref.watch(bookTransactionsProvider(_currentBook.id));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD),
+      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
           // App Bar with Book Info
-          SliverAppBar(
-            expandedHeight: 220,
-            pinned: true,
-            elevation: 0,
-            backgroundColor:
-                Color(int.parse('FF${_currentBook.color}', radix: 16)),
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                _currentBook.name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(int.parse('FF${_currentBook.color}', radix: 16)),
-                      Color(int.parse('FF${_currentBook.color}', radix: 16))
-                          .withOpacity(0.7),
-                    ],
+          _isSelectionMode
+              ? SliverAppBar(
+                  pinned: true,
+                  elevation: 0,
+                  backgroundColor: AppColors.primary,
+                  leading: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: _toggleSelectionMode,
                   ),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 40),
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          IconHelper.getIcon(_currentBook.icon),
-                          size: 60,
-                          color: Colors.white,
+                  title: Text(
+                    '${_selectedTransactionIds.length} selected',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  actions: [
+                    transactionsAsync.when(
+                      data: (transactions) {
+                        final filtered = _applyFilters(transactions);
+                        final allSelected = filtered.isNotEmpty &&
+                            filtered.every(
+                                (t) => _selectedTransactionIds.contains(t.id));
+                        return IconButton(
+                          icon: Icon(
+                            allSelected
+                                ? Icons.deselect_rounded
+                                : Icons.select_all_rounded,
+                          ),
+                          tooltip: allSelected ? 'Deselect All' : 'Select All',
+                          onPressed: () {
+                            if (allSelected) {
+                              _deselectAll();
+                            } else {
+                              _selectAll(filtered);
+                            }
+                          },
+                        );
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                  ],
+                )
+              : SliverAppBar(
+                  expandedHeight: 180,
+                  pinned: true,
+                  elevation: 0,
+                  backgroundColor: AppColors.background,
+                  foregroundColor: AppColors.textPrimary,
+                  flexibleSpace: FlexibleSpaceBar(
+                    title: Text(
+                      _currentBook.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    centerTitle: false,
+                    titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
+                    background: Container(
+                      color: AppColors.background,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(height: 40),
+                            Container(
+                              padding: const EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                color: Color(int.parse(
+                                        'FF${_currentBook.color}',
+                                        radix: 16))
+                                    .withOpacity(0.12),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                IconHelper.getIcon(_currentBook.icon),
+                                size: 44,
+                                color: Color(int.parse(
+                                    'FF${_currentBook.color}',
+                                    radix: 16)),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
+                  actions: [
+                    // Report button
+                    IconButton(
+                      icon: const Icon(Icons.bar_chart_rounded),
+                      tooltip: 'Reports',
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ReportScreen(book: _currentBook),
+                          ),
+                        );
+                      },
+                    ),
+                    PopupMenuButton<String>(
+                      onSelected: (value) async {
+                        if (value == 'edit') {
+                          _navigateToEditBook();
+                        } else if (value == 'delete') {
+                          _deleteBook();
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_rounded,
+                                  size: 20, color: AppColors.primary),
+                              SizedBox(width: 12),
+                              Text('Edit Book'),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_rounded,
+                                  size: 20, color: AppColors.expense),
+                              const SizedBox(width: 12),
+                              Text('Delete Book',
+                                  style: TextStyle(color: AppColors.expense)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-            ),
-            actions: [
-              PopupMenuButton<String>(
-                onSelected: (value) async {
-                  if (value == 'edit') {
-                    _navigateToEditBook();
-                  } else if (value == 'delete') {
-                    _deleteBook();
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(Icons.edit, size: 20),
-                        SizedBox(width: 12),
-                        Text('Edit Book'),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(Icons.delete, size: 20, color: Colors.red),
-                        SizedBox(width: 12),
-                        Text('Delete Book',
-                            style: TextStyle(color: Colors.red)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
 
           // Statistics Section
           transactionsAsync.when(
@@ -681,17 +796,17 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: hasActiveFilters
-                                ? const Color(0xFF6C63FF)
-                                : const Color(0xFF7F8C8D),
+                                ? AppColors.primary
+                                : AppColors.textSecondary,
                           ),
                         ),
                       ),
                       Material(
                         color: hasActiveFilters
-                            ? const Color(0xFF6C63FF)
-                            : Colors.white,
+                            ? AppColors.primary
+                            : AppColors.cardBackground,
                         borderRadius: BorderRadius.circular(12),
-                        elevation: hasActiveFilters ? 2 : 1,
+                        elevation: hasActiveFilters ? 2 : 0,
                         child: InkWell(
                           onTap: () => _showFilterBottomSheet(transactions),
                           borderRadius: BorderRadius.circular(12),
@@ -706,7 +821,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                                   size: 18,
                                   color: hasActiveFilters
                                       ? Colors.white
-                                      : const Color(0xFF6C63FF),
+                                      : AppColors.primary,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
@@ -716,7 +831,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                                     fontWeight: FontWeight.w600,
                                     color: hasActiveFilters
                                         ? Colors.white
-                                        : const Color(0xFF6C63FF),
+                                        : AppColors.primary,
                                   ),
                                 ),
                               ],
@@ -744,15 +859,15 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                       ? 'Income'
                       : 'Expense',
                   color: _selectedType == TransactionType.income
-                      ? const Color(0xFF00D9A6)
-                      : const Color(0xFFFF6B9D),
+                      ? AppColors.income
+                      : AppColors.expense,
                   onRemove: () => setState(() => _selectedType = null),
                 ));
               }
               if (_selectedCategory != null) {
                 chips.add(_ActiveFilterChip(
                   label: _selectedCategory!,
-                  color: const Color(0xFF6C63FF),
+                  color: AppColors.primary,
                   onRemove: () => setState(() => _selectedCategory = null),
                 ));
               }
@@ -760,7 +875,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                 chips.add(_ActiveFilterChip(
                   label:
                       '${DateFormat('MMM dd').format(_selectedDateRange!.start)} - ${DateFormat('MMM dd').format(_selectedDateRange!.end)}',
-                  color: const Color(0xFF6C63FF),
+                  color: AppColors.primary,
                   onRemove: () => setState(() => _selectedDateRange = null),
                 ));
               }
@@ -805,13 +920,13 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF2C3E50),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 8),
                         const Text(
                           'Tap + to add your first transaction',
-                          style: TextStyle(color: Color(0xFF7F8C8D)),
+                          style: TextStyle(color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -836,13 +951,13 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF2C3E50),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 8),
                         const Text(
                           'Try adjusting your filters',
-                          style: TextStyle(color: Color(0xFF7F8C8D)),
+                          style: TextStyle(color: AppColors.textSecondary),
                         ),
                         const SizedBox(height: 16),
                         TextButton.icon(
@@ -856,7 +971,7 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                           icon: const Icon(Icons.clear_all_rounded),
                           label: const Text('Clear Filters'),
                           style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFF6C63FF),
+                            foregroundColor: AppColors.primary,
                           ),
                         ),
                       ],
@@ -872,9 +987,20 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
                     return _TransactionItem(
                       transaction: transaction,
                       bookColor: _currentBook.color,
+                      isSelectionMode: _isSelectionMode,
+                      isSelected:
+                          _selectedTransactionIds.contains(transaction.id),
                       onEdit: () => _navigateToAddTransaction(
                           transactionToEdit: transaction),
                       onDelete: () => _deleteTransaction(transaction),
+                      onSelect: () =>
+                          _toggleTransactionSelection(transaction.id),
+                      onLongPress: () {
+                        if (!_isSelectionMode) {
+                          setState(() => _isSelectionMode = true);
+                          _toggleTransactionSelection(transaction.id);
+                        }
+                      },
                     );
                   },
                   childCount: filteredTransactions.length,
@@ -892,28 +1018,44 @@ class _BookDetailScreenState extends ConsumerState<BookDetailScreen> {
           ),
         ],
       ),
-      floatingActionButton: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton(
-            heroTag: 'scan',
-            onPressed: () => _navigateToScanReceipt(),
-            backgroundColor:
-                Color(int.parse('FF${_currentBook.color}', radix: 16))
-                    .withOpacity(0.85),
-            child: const Icon(Icons.document_scanner_rounded),
-          ),
-          const SizedBox(width: 12),
-          FloatingActionButton.extended(
-            heroTag: 'add',
-            onPressed: () => _navigateToAddTransaction(),
-            icon: const Icon(Icons.add),
-            label: const Text('Add'),
-            backgroundColor:
-                Color(int.parse('FF${_currentBook.color}', radix: 16)),
-          ),
-        ],
-      ),
+      floatingActionButton: _isSelectionMode
+          ? null
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FloatingActionButton.small(
+                  heroTag: 'scan',
+                  onPressed: () => _navigateToScanReceipt(),
+                  backgroundColor: AppColors.surfaceVariant,
+                  elevation: 2,
+                  child: Icon(Icons.document_scanner_rounded,
+                      color: AppColors.primary, size: 22),
+                ),
+                const SizedBox(width: 12),
+                FloatingActionButton(
+                  heroTag: 'add',
+                  onPressed: () => _navigateToAddTransaction(),
+                  backgroundColor: AppColors.primary,
+                  elevation: 4,
+                  child: const Icon(Icons.add_rounded,
+                      color: Colors.white, size: 28),
+                ),
+              ],
+            ),
+      bottomNavigationBar: _isSelectionMode
+          ? transactionsAsync.when(
+              data: (transactions) {
+                final filtered = _applyFilters(transactions);
+                final totals = _calculateSelectedTotals(filtered);
+                if (_selectedTransactionIds.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return _SelectionSummaryBar(totals: totals);
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            )
+          : null,
     );
   }
 }
@@ -928,22 +1070,20 @@ class _StatisticsCard extends StatelessWidget {
     final income = stats['income'] ?? 0;
     final expense = stats['expense'] ?? 0;
     final balance = stats['balance'] ?? 0;
+    final fmt =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.white, Color(0xFFF8F9FD)],
-        ),
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -955,44 +1095,31 @@ class _StatisticsCard extends StatelessWidget {
                 child: _StatItem(
                   label: 'Income',
                   amount: income,
-                  color: const Color(0xFF00D9A6),
+                  color: AppColors.income,
                   icon: Icons.arrow_downward_rounded,
                 ),
               ),
               Container(
-                width: 2,
-                height: 60,
-                color: Colors.grey[200],
+                width: 1,
+                height: 50,
+                color: AppColors.divider,
               ),
-              const SizedBox(width: 16),
               Expanded(
                 child: _StatItem(
                   label: 'Expense',
                   amount: expense,
-                  color: const Color(0xFFFF6B9D),
+                  color: AppColors.expense,
                   icon: Icons.arrow_upward_rounded,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: balance >= 0
-                    ? [
-                        const Color(0xFF00D9A6).withOpacity(0.1),
-                        const Color(0xFF00D9A6).withOpacity(0.05)
-                      ]
-                    : [
-                        const Color(0xFFFF6B9D).withOpacity(0.1),
-                        const Color(0xFFFF6B9D).withOpacity(0.05)
-                      ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
+              color: balance >= 0 ? AppColors.incomeBg : AppColors.expenseBg,
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1001,32 +1128,27 @@ class _StatisticsCard extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.account_balance_wallet_rounded,
-                      color: balance >= 0
-                          ? const Color(0xFF00D9A6)
-                          : const Color(0xFFFF6B9D),
-                      size: 24,
+                      color:
+                          balance >= 0 ? AppColors.income : AppColors.expense,
+                      size: 22,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     const Text(
                       'Balance',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C3E50),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ],
                 ),
                 Text(
-                  NumberFormat.currency(
-                          locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0)
-                      .format(balance),
+                  fmt.format(balance),
                   style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: balance >= 0
-                        ? const Color(0xFF00D9A6)
-                        : const Color(0xFFFF6B9D),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: balance >= 0 ? AppColors.income : AppColors.expense,
                   ),
                 ),
               ],
@@ -1057,30 +1179,30 @@ class _StatItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(12),
+            color: color.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: color, size: 24),
+          child: Icon(icon, color: color, size: 20),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
+          style: const TextStyle(
+            fontSize: 13,
+            color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Text(
           NumberFormat.currency(
                   locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0)
               .format(amount),
           style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
             color: color,
           ),
         ),
@@ -1094,17 +1216,25 @@ class _TransactionItem extends StatelessWidget {
   final String bookColor;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final bool isSelectionMode;
+  final bool isSelected;
+  final VoidCallback? onSelect;
+  final VoidCallback? onLongPress;
 
   const _TransactionItem({
     required this.transaction,
     required this.bookColor,
     required this.onEdit,
     required this.onDelete,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onSelect,
+    this.onLongPress,
   });
 
   void _showOptionsBottomSheet(BuildContext context) {
     final isIncome = transaction.type == TransactionType.income;
-    final color = isIncome ? const Color(0xFF00D9A6) : const Color(0xFFFF6B9D);
+    final color = isIncome ? AppColors.income : AppColors.expense;
 
     showModalBottomSheet(
       context: context,
@@ -1181,11 +1311,11 @@ class _TransactionItem extends StatelessWidget {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF6C63FF).withOpacity(0.1),
+                      color: AppColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(Icons.edit_rounded,
-                        color: Color(0xFF6C63FF), size: 20),
+                        color: AppColors.primary, size: 20),
                   ),
                   title: const Text('Edit Transaction',
                       style: TextStyle(fontWeight: FontWeight.w600)),
@@ -1227,7 +1357,7 @@ class _TransactionItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isIncome = transaction.type == TransactionType.income;
-    final color = isIncome ? const Color(0xFF00D9A6) : const Color(0xFFFF6B9D);
+    final color = isIncome ? AppColors.income : AppColors.expense;
 
     return Dismissible(
       key: Key(transaction.id),
@@ -1258,56 +1388,94 @@ class _TransactionItem extends StatelessWidget {
         ),
       ),
       child: GestureDetector(
-        onTap: () => _showOptionsBottomSheet(context),
-        onLongPress: () => _showOptionsBottomSheet(context),
+        onTap:
+            isSelectionMode ? onSelect : () => _showOptionsBottomSheet(context),
+        onLongPress: isSelectionMode
+            ? null
+            : (onLongPress ?? () => _showOptionsBottomSheet(context)),
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isSelected
+                ? AppColors.primary.withOpacity(0.06)
+                : AppColors.cardBackground,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            border: isSelected
+                ? Border.all(
+                    color: AppColors.primary.withOpacity(0.2), width: 1.5)
+                : null,
+            boxShadow: isSelected
+                ? null
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           child: ListTile(
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            leading: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [color, color.withOpacity(0.7)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            horizontalTitleGap: 12,
+            leading: isSelectionMode
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: Checkbox(
+                          value: isSelected,
+                          onChanged: (_) => onSelect?.call(),
+                          activeColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          isIncome
+                              ? Icons.arrow_downward_rounded
+                              : Icons.arrow_upward_rounded,
+                          color: color,
+                          size: 16,
+                        ),
+                      ),
+                    ],
+                  )
+                : Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      isIncome
+                          ? Icons.arrow_downward_rounded
+                          : Icons.arrow_upward_rounded,
+                      color: color,
+                      size: 22,
+                    ),
                   ),
-                ],
-              ),
-              child: Icon(
-                isIncome
-                    ? Icons.arrow_downward_rounded
-                    : Icons.arrow_upward_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
             title: Text(
               transaction.description,
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: Color(0xFF2C3E50),
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+                color: AppColors.textPrimary,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1315,19 +1483,23 @@ class _TransactionItem extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        transaction.category,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: color,
-                          fontWeight: FontWeight.w600,
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          transaction.category,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: color,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
@@ -1356,7 +1528,200 @@ class _TransactionItem extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SelectionSummaryBar extends StatelessWidget {
+  final Map<String, double> totals;
+
+  const _SelectionSummaryBar({required this.totals});
+
+  @override
+  Widget build(BuildContext context) {
+    final income = totals['income'] ?? 0;
+    final expense = totals['expense'] ?? 0;
+    final balance = totals['balance'] ?? 0;
+    final count = (totals['count'] ?? 0).toInt();
+    final currencyFormat =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, -3),
+          ),
+        ],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.calculate_rounded,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    '$count item${count == 1 ? '' : 's'} selected',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Income / Expense row
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.income.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.arrow_downward_rounded,
+                                  color: AppColors.income, size: 16),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Income',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            currencyFormat.format(income),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.income,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.expense.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.arrow_upward_rounded,
+                                  color: AppColors.expense, size: 16),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Expense',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            currencyFormat.format(expense),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.expense,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              // Net total row
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: balance >= 0
+                        ? [
+                            AppColors.income.withOpacity(0.1),
+                            AppColors.income.withOpacity(0.05),
+                          ]
+                        : [
+                            AppColors.expense.withOpacity(0.1),
+                            AppColors.expense.withOpacity(0.05),
+                          ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Net Total',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      currencyFormat.format(balance),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color:
+                            balance >= 0 ? AppColors.income : AppColors.expense,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -7,6 +7,7 @@ import '../models/book.dart';
 import '../models/category.dart';
 import '../models/transaction.dart';
 import '../code/icon_helper.dart';
+import '../code/app_theme.dart';
 import '../services/receipt_parser_service.dart';
 
 /// Data class returned when the user confirms the scanned receipt
@@ -202,22 +203,19 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
     final bookColor = Color(int.parse('FF${widget.book.color}', radix: 16));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
           'Scan Receipt',
-          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
-        ),
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [bookColor, bookColor.withOpacity(0.8)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppColors.textPrimary,
           ),
         ),
+        elevation: 0,
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.textPrimary,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -286,7 +284,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C3E50),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -357,7 +355,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C3E50),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -506,7 +504,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                              color: Color(0xFF2C3E50),
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ],
@@ -563,7 +561,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF2C3E50),
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ),
@@ -578,7 +576,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                     child: _ScanTypeButton(
                       label: 'Expense',
                       icon: Icons.arrow_upward_rounded,
-                      color: const Color(0xFFFF6B9D),
+                      color: AppColors.expense,
                       isSelected: _type == TransactionType.expense,
                       onTap: () {
                         setState(() {
@@ -593,7 +591,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                     child: _ScanTypeButton(
                       label: 'Income',
                       icon: Icons.arrow_downward_rounded,
-                      color: const Color(0xFF00D9A6),
+                      color: AppColors.income,
                       isSelected: _type == TransactionType.income,
                       onTap: () {
                         setState(() {
@@ -627,7 +625,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C3E50),
+                    color: AppColors.textPrimary,
                   ),
                   decoration: InputDecoration(
                     labelText: 'Amount',
@@ -699,7 +697,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                               fontWeight: FontWeight.w600,
                               color: isSelected
                                   ? Colors.white
-                                  : const Color(0xFF2C3E50),
+                                  : AppColors.textPrimary,
                             ),
                           ),
                         ],
@@ -750,7 +748,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                             'Date',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF7F8C8D),
+                              color: AppColors.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -764,7 +762,8 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                         ],
                       ),
                       const Spacer(),
-                      const Icon(Icons.chevron_right, color: Color(0xFF7F8C8D)),
+                      const Icon(Icons.chevron_right,
+                          color: AppColors.textSecondary),
                     ],
                   ),
                 ),
@@ -873,7 +872,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2C3E50),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -1016,7 +1015,7 @@ class _ScanTypeButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : const Color(0xFF2C3E50),
+                color: isSelected ? Colors.white : AppColors.textPrimary,
               ),
             ),
           ],

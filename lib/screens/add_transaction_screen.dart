@@ -5,6 +5,7 @@ import '../models/book.dart';
 import '../models/transaction.dart';
 import '../models/category.dart';
 import '../code/icon_helper.dart';
+import '../code/app_theme.dart';
 import '../services/local_database_service.dart';
 import 'package:intl/intl.dart';
 
@@ -149,29 +150,21 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           widget.transactionToEdit == null
               ? 'Add Transaction'
               : 'Edit Transaction',
-          style:
-              const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
-        ),
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(int.parse('FF${widget.book.color}', radix: 16)),
-                Color(int.parse('FF${widget.book.color}', radix: 16))
-                    .withOpacity(0.8),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppColors.textPrimary,
           ),
         ),
+        elevation: 0,
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.textPrimary,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -213,7 +206,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     child: _TypeButton(
                       label: 'Expense',
                       icon: Icons.arrow_upward_rounded,
-                      color: const Color(0xFFFF6B9D),
+                      color: AppColors.expense,
                       isSelected: _type == TransactionType.expense,
                       onTap: () {
                         setState(() {
@@ -228,7 +221,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     child: _TypeButton(
                       label: 'Income',
                       icon: Icons.arrow_downward_rounded,
-                      color: const Color(0xFF00D9A6),
+                      color: AppColors.income,
                       isSelected: _type == TransactionType.income,
                       onTap: () {
                         setState(() {
@@ -245,13 +238,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               // Amount
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
@@ -264,25 +257,25 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                         RegExp(r'^\d+\.?\d{0,2}')),
                   ],
                   style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C3E50),
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
                   ),
                   decoration: InputDecoration(
                     labelText: 'Amount',
-                    labelStyle: const TextStyle(color: Color(0xFF6C63FF)),
+                    labelStyle: const TextStyle(color: AppColors.primary),
                     prefixText: 'Rp ',
                     prefixStyle: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF6C63FF),
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
                     ),
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(20)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: AppColors.cardBackground,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -315,20 +308,22 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   final isSelected = _selectedCategory?.id == category.id;
                   return GestureDetector(
                     onTap: () => setState(() => _selectedCategory = category),
-                    child: Container(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                          horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? Color(int.parse('FF${category.color}', radix: 16))
-                            : Colors.white,
+                                .withOpacity(0.12)
+                            : AppColors.cardBackground,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
                               ? Color(
                                   int.parse('FF${category.color}', radix: 16))
-                              : Colors.grey.shade300,
-                          width: 2,
+                              : AppColors.border,
+                          width: isSelected ? 1.5 : 1,
                         ),
                       ),
                       child: Row(
@@ -336,21 +331,20 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                         children: [
                           Icon(
                             IconHelper.getIcon(category.icon),
-                            size: 20,
-                            color: isSelected
-                                ? Colors.white
-                                : Color(int.parse('FF${category.color}',
-                                    radix: 16)),
+                            size: 18,
+                            color: Color(
+                                int.parse('FF${category.color}', radix: 16)),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             category.name,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: isSelected
-                                  ? Colors.white
-                                  : const Color(0xFF2C3E50),
+                                  ? Color(int.parse('FF${category.color}',
+                                      radix: 16))
+                                  : AppColors.textPrimary,
                             ),
                           ),
                         ],
@@ -369,11 +363,16 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 decoration: InputDecoration(
                   labelText: 'Description',
                   hintText: 'What was this for?',
-                  prefixIcon: const Icon(Icons.notes),
+                  prefixIcon: const Icon(Icons.notes_rounded,
+                      color: AppColors.textSecondary),
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(14)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: AppColors.cardBackground,
                   alignLabelWithHint: true,
                 ),
                 validator: (value) {
@@ -388,18 +387,18 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               // Date Selection
               InkWell(
                 onTap: () => _selectDate(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
+                    color: AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.calendar_today,
-                          color: Color(0xFF5F27CD)),
+                      const Icon(Icons.calendar_today_rounded,
+                          color: AppColors.primary, size: 20),
                       const SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,21 +407,23 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                             'Date',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF7F8C8D),
+                              color: AppColors.textSecondary,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           Text(
                             DateFormat('MMMM dd, yyyy').format(_selectedDate),
                             style: const TextStyle(
-                              fontSize: 16,
+                              fontSize: 15,
                               fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ],
                       ),
                       const Spacer(),
-                      const Icon(Icons.chevron_right, color: Color(0xFF7F8C8D)),
+                      const Icon(Icons.chevron_right_rounded,
+                          color: AppColors.textSecondary, size: 22),
                     ],
                   ),
                 ),
@@ -430,58 +431,37 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               const SizedBox(height: 32),
 
               // Save Button
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(int.parse('FF${widget.book.color}', radix: 16)),
-                      Color(int.parse('FF${widget.book.color}', radix: 16))
-                          .withOpacity(0.8),
-                    ],
+              ElevatedButton(
+                onPressed: _isLoading ? null : _handleSave,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          Color(int.parse('FF${widget.book.color}', radix: 16))
-                              .withOpacity(0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
                 ),
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleSave,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 3,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Text(
-                          widget.transactionToEdit == null
-                              ? 'Add Transaction'
-                              : 'Save Changes',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 1,
-                          ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
-                ),
+                      )
+                    : Text(
+                        widget.transactionToEdit == null
+                            ? 'Add Transaction'
+                            : 'Save Changes',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
               ),
             ],
           ),
@@ -510,48 +490,33 @@ class _TypeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 18),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(
-                  colors: [color, color.withOpacity(0.8)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : null,
-          color: isSelected ? null : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color:
+              isSelected ? color.withOpacity(0.12) : AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? Colors.transparent : color.withOpacity(0.3),
-            width: 2,
+            color: isSelected ? color : AppColors.border,
+            width: isSelected ? 2 : 1,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: isSelected
-                  ? color.withOpacity(0.3)
-                  : Colors.black.withOpacity(0.05),
-              blurRadius: isSelected ? 12 : 8,
-              offset: Offset(0, isSelected ? 6 : 4),
-            ),
-          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              color: isSelected ? Colors.white : color,
-              size: 24,
+              color: isSelected ? color : AppColors.textSecondary,
+              size: 22,
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : const Color(0xFF2C3E50),
-                letterSpacing: 0.5,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? color : AppColors.textSecondary,
               ),
             ),
           ],

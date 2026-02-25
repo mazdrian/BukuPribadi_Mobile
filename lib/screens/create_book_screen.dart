@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/local_database_service.dart';
 import '../models/book.dart';
 import '../code/icon_helper.dart';
+import '../code/app_theme.dart';
 
 class CreateBookScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -107,23 +108,19 @@ class _CreateBookScreenState extends ConsumerState<CreateBookScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           widget.bookToEdit == null ? 'Create Book' : 'Edit Book',
-          style:
-              const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
-        ),
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF6C63FF), Color(0xFF4E47D9)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppColors.textPrimary,
           ),
         ),
+        elevation: 0,
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.textPrimary,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -161,30 +158,28 @@ class _CreateBookScreenState extends ConsumerState<CreateBookScreen> {
               // Book Name
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: TextFormField(
                   controller: _nameController,
                   textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Book Name',
-                    labelStyle: TextStyle(color: Color(0xFF6C63FF)),
+                    labelStyle: const TextStyle(color: AppColors.primary),
                     hintText: 'e.g., Daily Expenses, Travel Fund',
-                    prefixIcon: Icon(Icons.book, color: Color(0xFF6C63FF)),
+                    prefixIcon: const Icon(Icons.menu_book_rounded,
+                        color: AppColors.primary, size: 22),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(16)),
-                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: AppColors.border),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: AppColors.border),
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: AppColors.cardBackground,
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -199,32 +194,29 @@ class _CreateBookScreenState extends ConsumerState<CreateBookScreen> {
               // Description
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: TextFormField(
                   controller: _descriptionController,
                   maxLines: 3,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Description (Optional)',
-                    labelStyle: TextStyle(color: Color(0xFF6C63FF)),
+                    labelStyle: const TextStyle(color: AppColors.primary),
                     hintText: 'What is this book for?',
-                    prefixIcon:
-                        Icon(Icons.description, color: Color(0xFF6C63FF)),
+                    prefixIcon: const Icon(Icons.description_rounded,
+                        color: AppColors.primary, size: 22),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(16)),
-                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: AppColors.border),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: AppColors.border),
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: AppColors.cardBackground,
                     alignLabelWithHint: true,
                   ),
                 ),
@@ -236,70 +228,47 @@ class _CreateBookScreenState extends ConsumerState<CreateBookScreen> {
                 'Choose Icon',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF2C3E50),
+                      color: AppColors.textPrimary,
                     ),
               ),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
+                  spacing: 10,
+                  runSpacing: 10,
                   children: _icons.map((icon) {
                     final isSelected = icon == _selectedIcon;
                     return GestureDetector(
                       onTap: () => setState(() => _selectedIcon = icon),
-                      child: Container(
-                        width: 60,
-                        height: 60,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
-                          gradient: isSelected
-                              ? const LinearGradient(
-                                  colors: [
-                                    Color(0xFF6C63FF),
-                                    Color(0xFF4E47D9)
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                )
-                              : null,
-                          color: isSelected ? null : Colors.grey[100],
-                          borderRadius: BorderRadius.circular(14),
+                          color: isSelected
+                              ? AppColors.primary.withOpacity(0.12)
+                              : AppColors.surfaceVariant,
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isSelected
-                                ? Colors.transparent
-                                : Colors.grey.shade200,
-                            width: 2,
+                                ? AppColors.primary
+                                : Colors.transparent,
+                            width: 1.5,
                           ),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: const Color(0xFF6C63FF)
-                                        .withOpacity(0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ]
-                              : null,
                         ),
                         child: Center(
                           child: Icon(
                             IconHelper.getIcon(icon),
-                            size: 28,
+                            size: 24,
                             color: isSelected
-                                ? Colors.white
-                                : const Color(0xFF2C3E50),
+                                ? AppColors.primary
+                                : AppColors.textSecondary,
                           ),
                         ),
                       ),
@@ -314,61 +283,41 @@ class _CreateBookScreenState extends ConsumerState<CreateBookScreen> {
                 'Choose Color',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF2C3E50),
+                      color: AppColors.textPrimary,
                     ),
               ),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
+                  spacing: 10,
+                  runSpacing: 10,
                   children: _colors.map((color) {
                     final isSelected = color == _selectedColor;
                     return GestureDetector(
                       onTap: () => setState(() => _selectedColor = color),
-                      child: Container(
-                        width: 60,
-                        height: 60,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(int.parse('FF$color', radix: 16)),
-                              Color(int.parse('FF$color', radix: 16))
-                                  .withOpacity(0.8),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
+                          color: Color(int.parse('FF$color', radix: 16)),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color:
-                                isSelected ? Colors.white : Colors.transparent,
-                            width: 3,
+                            color: isSelected
+                                ? AppColors.textPrimary
+                                : Colors.transparent,
+                            width: 2.5,
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(int.parse('FF$color', radix: 16))
-                                  .withOpacity(isSelected ? 0.5 : 0.2),
-                              blurRadius: isSelected ? 12 : 6,
-                              spreadRadius: isSelected ? 2 : 0,
-                            ),
-                          ],
                         ),
                         child: isSelected
                             ? const Icon(Icons.check_rounded,
-                                color: Colors.white, size: 32)
+                                color: Colors.white, size: 26)
                             : null,
                       ),
                     );
@@ -379,32 +328,28 @@ class _CreateBookScreenState extends ConsumerState<CreateBookScreen> {
 
               // Preview
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: Row(
                   children: [
                     Container(
-                      width: 60,
-                      height: 60,
+                      width: 52,
+                      height: 52,
                       decoration: BoxDecoration(
-                        color: Color(int.parse('FF$_selectedColor', radix: 16)),
+                        color: Color(int.parse('FF$_selectedColor', radix: 16))
+                            .withOpacity(0.12),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
                         child: Icon(
                           IconHelper.getIcon(_selectedIcon),
-                          size: 32,
-                          color: Colors.white,
+                          size: 28,
+                          color:
+                              Color(int.parse('FF$_selectedColor', radix: 16)),
                         ),
                       ),
                     ),
@@ -444,52 +389,37 @@ class _CreateBookScreenState extends ConsumerState<CreateBookScreen> {
               const SizedBox(height: 32),
 
               // Save Button
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF6C63FF), Color(0xFF4E47D9)],
+              ElevatedButton(
+                onPressed: _isLoading ? null : _handleSave,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF6C63FF).withOpacity(0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
                 ),
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleSave,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 3,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Text(
-                          widget.bookToEdit == null
-                              ? 'Create Book'
-                              : 'Save Changes',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 1,
-                          ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
-                ),
+                      )
+                    : Text(
+                        widget.bookToEdit == null
+                            ? 'Create Book'
+                            : 'Save Changes',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
               ),
             ],
           ),
